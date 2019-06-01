@@ -594,6 +594,30 @@ reboot_os() {
     # fi
 }
 
+install_elrepo() {
+    if centosversion 5; then
+        echo -e "[${red}错误${plain}] 脚本不支持CentOS 5。"
+        exit 1
+    fi
+
+    rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
+    if centosversion 6; then
+        rpm -Uvh http://www.elrepo.org/elrepo-release-6-8.el6.elrepo.noarch.rpm
+    elif centosversion 7; then
+        rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-3.el7.elrepo.noarch.rpm
+    fi
+
+    if [ ! -f /etc/yum.repos.d/elrepo.repo ]; then
+        echo -e "[${red}错误${plain}] 安装elrepo失败，请自行检查。"
+        exit 1
+    fi
+}
+
+version_ge(){
+    test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"
+}
+
 check_kernel_version() {
     local kernel_version=$(uname -r | cut -d- -f1)
     if version_ge ${kernel_version} 4.9; then
