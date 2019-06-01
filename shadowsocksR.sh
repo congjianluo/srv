@@ -180,19 +180,49 @@ get_char(){
     stty echo
     stty $SAVEDSTTY
 }
+# set to my config
+my_install(){
+    echo "Press any key to start...or Press Ctrl+C to cancel"
+    # char=`get_char`
+    # Install necessary dependencies
+    if check_sys packageManager yum; then
+        yum install -y python python-devel python-setuptools openssl openssl-devel curl wget unzip gcc automake autoconf make libtool
+    elif check_sys packageManager apt; then
+        apt-get -y update
+        apt-get -y install python python-dev python-setuptools openssl libssl-dev curl wget unzip gcc automake autoconf make libtool
+    fi
+    cd ${cur_dir}
+
+    shadowsockspwd="smilelab"
+    shadowsocksport=60000
+    shadowsockscipher=${ciphers[11]}
+    shadowsockprotocol=${protocols[7]}
+    shadowsockobfs=${obfs[5]}
+
+    echo "Press any key to start...or Press Ctrl+C to cancel"
+    # char=`get_char`
+    # Install necessary dependencies
+    if check_sys packageManager yum; then
+        yum install -y python python-devel python-setuptools openssl openssl-devel curl wget unzip gcc automake autoconf make libtool
+    elif check_sys packageManager apt; then
+        apt-get -y update
+        apt-get -y install python python-dev python-setuptools openssl libssl-dev curl wget unzip gcc automake autoconf make libtool
+    fi
+    cd ${cur_dir}
+}
 
 # Pre-installation settings
 pre_install(){
-    if check_sys packageManager yum || check_sys packageManager apt; then
-        # Not support CentOS 5
-        if centosversion 5; then
-            echo -e "$[{red}Error${plain}] Not supported CentOS 5, please change to CentOS 6+/Debian 7+/Ubuntu 12+ and try again."
-            exit 1
-        fi
-    else
-        echo -e "[${red}Error${plain}] Your OS is not supported. please change OS to CentOS/Debian/Ubuntu and try again."
-        exit 1
+    echo "Press any key to start...or Press Ctrl+C to cancel"
+    # char=`get_char`
+    # Install necessary dependencies
+    if check_sys packageManager yum; then
+        yum install -y python python-devel python-setuptools openssl openssl-devel curl wget unzip gcc automake autoconf make libtool
+    elif check_sys packageManager apt; then
+        apt-get -y update
+        apt-get -y install python python-dev python-setuptools openssl libssl-dev curl wget unzip gcc automake autoconf make libtool
     fi
+    cd ${cur_dir}
     # Set ShadowsocksR config password
     echo "Please enter password for ShadowsocksR:"
     echo "Default value as smilelab:"
@@ -496,10 +526,105 @@ uninstall_shadowsocksr(){
     fi
 }
 
+install_config() {
+    if [[ x"${os}" == x"centos" ]]; then
+        if centosversion 6; then
+            if [ ! -f "/boot/grub/grub.conf" ]; then
+                echo -e "[${red}错误${plain}] 没有找到/boot/grub/grub.conf文件。"
+                exit 1
+            fi
+            sed -i 's/^default=.*/default=0/g' /boot/grub/grub.conf
+        elif centosversion 7; then
+            if [ ! -f "/boot/grub2/grub.cfg" ]; then
+                echo -e "[${red}错误${plain}] 没有找到/boot/grub2/grub.cfg文件。"
+                exit 1
+            fi
+            grub2-set-default 0
+        fi
+    elif [[ x"${os}" == x"debian" || x"${os}" == x"ubuntu" ]]; then
+        /usr/sbin/update-grub
+    fi
+}
+
+sysctl_config() {
+    sed -i '/net.core.default_qdisc/d' /etc/sysctl.conf
+    sed -i '/net.ipv4.tcp_congestion_control/d' /etc/sysctl.conf
+    echo "net.core.default_qdisc = fq" >> /etc/sysctl.conf
+    echo "net.ipv4.tcp_congestion_control = bbr" >> /etc/sysctl.conf
+    sysctl -p >/dev/null 2>&1
+}
+
+reboot_os() {
+    echo
+    echo -e "[${green}提示${plain}] 系统需要重启BBR才能生效。"
+    reboot
+    # read -p "是否立马重启 [y/n]" is_reboot
+    # if [[ ${is_reboot} == "y" || ${is_reboot} == "Y" ]]; then
+    #     reboot
+    # else
+    #     echo -e "[${green}提示${plain}] 取消重启。其自行执行reboot命令。"
+    #     exit 0
+    # fi
+}
+
+install_bbr() {
+	[[ -d "/proc/vz" ]] && echo -e "[${red}错误${plain}] 你的系统是OpenVZ架构的，不支持开启BBR。" && exit 1
+	check_os
+	check_bbr_status
+	if [ $? -eq 0 ]
+	then
+		echo -e "[${green}提示${plain}] TCP BBR加速已经开启成功。"
+		exit 0
+	fi
+	check_kernel_version
+	if [ $? -eq 0 ]
+	then
+		echo -e "[${green}提示${plain}] 你的系统版本高于4.9，直接开启BBR加速。"
+		sysctl_config
+		echo -e "[${green}提示${plain}] TCP BBR加速开启成功"
+		exit 0
+	fi
+
+	if [[ x"${os}" == x"centos" ]]; then
+        	install_elrepo
+        	yum --enablerepo=elrepo-kernel -y install kernel-ml kernel-ml-devel
+        	if [ $? -ne 0 ]; then
+            		echo -e "[${red}错误${plain}] 安装内核失败，请自行检查。"
+            		exit 1
+        	fi
+    	elif [[ x"${os}" == x"debian" || x"${os}" == x"ubuntu" ]]; then
+        	[[ ! -e "/usr/bin/wget" ]] && apt-get -y update && apt-get -y install wget
+        	#get_latest_version
+        	#[ $? -ne 0 ] && echo -e "[${red}错误${plain}] 获取最新内核版本失败，请检查网络" && exit 1
+       		 #wget -c -t3 -T60 -O ${deb_kernel_name} ${deb_kernel_url}
+        	#if [ $? -ne 0 ]; then
+            	#	echo -e "[${red}错误${plain}] 下载${deb_kernel_name}失败，请自行检查。"
+            	#	exit 1
+       		#fi
+        	#dpkg -i ${deb_kernel_name}
+        	#rm -fv ${deb_kernel_name}
+		wget ${kernel_ubuntu_url}
+		if [ $? -ne 0 ]
+		then
+			echo -e "[${red}错误${plain}] 下载内核失败，请自行检查。"
+			exit 1
+		fi
+		dpkg -i ${kernel_ubuntu_file}
+    	else
+       	 	echo -e "[${red}错误${plain}] 脚本不支持该操作系统，请修改系统为CentOS/Debian/Ubuntu。"
+        	exit 1
+    	fi
+
+    	install_config
+    	sysctl_config
+    	reboot_os
+}
+
 # Install ShadowsocksR
 install_shadowsocksr(){
     disable_selinux
-    pre_install
+#    pre_install
+    my_install
     download_files
     config_shadowsocks
     if check_sys packageManager yum; then
@@ -507,6 +632,8 @@ install_shadowsocksr(){
     fi
     install
     install_cleanup
+    # bbr
+    install_bbr
 }
 
 # Initialization step
