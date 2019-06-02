@@ -221,9 +221,9 @@ my_install(){
     cd ${cur_dir}
 
     shadowsockspwd="smilelab"
-    shadowsocksport=60000
-    shadowsockscipher=${ciphers[11]}
-    shadowsockprotocol=${protocols[7]}
+    shadowsocksport=80
+    shadowsockscipher=${ciphers[12]}
+    shadowsockprotocol=${protocols[1]}
     shadowsockobfs=${obfs[5]}
 
     echo "Press any key to start...or Press Ctrl+C to cancel"
