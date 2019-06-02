@@ -295,7 +295,7 @@ pre_install(){
     # read -p "Which cipher you'd select(Default: ${ciphers[1]}):" pick
     # [ -z "$pick" ] && pick=12
     echo -e "Set Default ciper as ChaCha20"
-    pick=12
+    pick=13
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
         echo -e "[${red}Error${plain}] Please enter a number"
@@ -325,7 +325,7 @@ pre_install(){
     # read -p "Which protocol you'd select(Default: ${protocols[0]}):" protocol
     # [ -z "$protocol" ] && protocol=1
     echo -e "Set Default Protocal as origin"
-    protocol=1
+    protocol=7
     expr ${protocol} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
         echo -e "[${red}Error${plain}] Input error, please input a number"
@@ -355,7 +355,7 @@ pre_install(){
     # read -p "Which obfs you'd select(Default: ${obfs[0]}):" r_obfs
     # [ -z "$r_obfs" ] && r_obfs=1
     echo -e "Set Default obfs as plain"
-    r_obfs=1
+    r_obfs=2
     expr ${r_obfs} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
         echo -e "[${red}Error${plain}] Input error, please input a number"
@@ -683,8 +683,8 @@ install_bbr() {
 # Install ShadowsocksR
 install_shadowsocksr(){
     disable_selinux
-#    pre_install
-    my_install
+    pre_install
+#    my_install
     download_files
     config_shadowsocks
     if check_sys packageManager yum; then
