@@ -223,7 +223,7 @@ my_install(){
     shadowsockspwd="smilelab"
     shadowsocksport=80
     shadowsockscipher=${ciphers[12]}
-    shadowsockprotocol=${protocols[1]}
+    shadowsockprotocol=${protocols[2]}
     shadowsockobfs=${obfs[5]}
 
     echo "Press any key to start...or Press Ctrl+C to cancel"
