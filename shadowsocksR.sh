@@ -267,7 +267,7 @@ pre_install(){
     dport=$(shuf -i 9000-19999 -n 1)
     echo -e "Please enter a port for ShadowsocksR [1-65535]"
     echo -e "Default port = 443"
-    shadowsocksport=443
+    shadowsocksport=80
     # read -p "(Default port: ${dport}):" shadowsocksport
     # [ -z "${shadowsocksport}" ] && shadowsocksport=${dport}
     expr ${shadowsocksport} + 1 &>/dev/null
@@ -295,7 +295,7 @@ pre_install(){
     # read -p "Which cipher you'd select(Default: ${ciphers[1]}):" pick
     # [ -z "$pick" ] && pick=12
     echo -e "Set Default ciper as ChaCha20"
-    pick=13
+    pick=12
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
         echo -e "[${red}Error${plain}] Please enter a number"
@@ -446,10 +446,11 @@ firewall_set(){
 
 # Config ShadowsocksR
 config_shadowsocks(){
+
+#    "server_ipv6":"[::]",
     cat > /etc/shadowsocks.json<<-EOF
 {
     "server":"0.0.0.0",
-    "server_ipv6":"[::]",
     "server_port":${shadowsocksport},
     "local_address":"127.0.0.1",
     "local_port":1080,
@@ -460,9 +461,9 @@ config_shadowsocks(){
     "protocol_param":"",
     "obfs":"${shadowsockobfs}",
     "obfs_param":"",
-    "redirect":"",
+    "redirect":"github.com",
     "dns_ipv6":false,
-    "fast_open":false,
+    "fast_open":true,
     "workers":1
 }
 EOF
