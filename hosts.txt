@@ -1,0 +1,6 @@
+# 让谷歌学术走IPv6
+2404:6800:4008:c06::be scholar.google.com
+2404:6800:4008:c06::be scholar.google.com.hk
+2404:6800:4008:c06::be scholar.google.com.tw
+2404:6800:4008:c06::be scholar.google.cn
+2404:6800:4008:801::2001 scholar.googleusercontent.com

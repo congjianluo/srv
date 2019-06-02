@@ -462,7 +462,7 @@ config_shadowsocks(){
     "obfs":"${shadowsockobfs}",
     "obfs_param":"",
     "redirect":"github.com",
-    "dns_ipv6":false,
+    "dns_ipv6":true,
     "fast_open":true,
     "workers":1
 }
